@@ -8,14 +8,9 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "destination": "/api"
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.js"
-    }
   ]
+  // ⚠️ La propiedad "routes" debe ELIMINARSE de este archivo
 }
