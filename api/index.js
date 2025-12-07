@@ -6,7 +6,7 @@ const app = express();
 
 // Base de datos de empleados
 const empleadosDB = [
-    { dni: "12345678", nombre: "Ana García", existe: true },
+    { dni: "12345678", nombre: "Ana García", existe: true }, 
     { dni: "87654321", nombre: "Luis Pérez", existe: true },
 ];
 // Base de datos de registros (solo se guarda en memoria mientras Vercel está activo)
