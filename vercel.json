@@ -8,8 +8,8 @@
   ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
+      "source": "/(.*)", // Esta línea captura CUALQUIER COSA
+      "destination": "/api" // Y lo envía a la función serverless
     }
   ]
 }
