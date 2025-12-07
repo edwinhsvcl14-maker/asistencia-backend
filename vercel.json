@@ -12,5 +12,4 @@
       "destination": "/api"
     }
   ]
-  // ⚠️ La propiedad "routes" debe ELIMINARSE de este archivo
 }
