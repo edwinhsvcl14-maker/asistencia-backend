@@ -8,9 +8,7 @@ const app = express();
 // 🔗 CONEXIÓN A LA BASE DE DATOS SUPABASE
 // ----------------------------------------------------
 // Usa DATABASE_URL (la variable que creaste manualmente)
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+const pool = new Pool();
 
 // Manejo de errores de conexión catastróficos
 pool.on('error', (err) => {
