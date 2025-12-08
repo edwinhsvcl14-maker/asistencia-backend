@@ -1,13 +1,14 @@
 {
   "name": "asistencia-backend",
   "version": "1.0.0",
-  "description": "Backend para sistema de asistencia QR con Node.js",
-  "main": "server.js",
+  "description": "Backend para sistema de asistencia",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node api/index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "pg": "^8.11.3"  <-- ¡ESTO ES CRÍTICO!
   }
 }
