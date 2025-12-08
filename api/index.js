@@ -1,75 +1,99 @@
 const express = require('express');
-const cors = require('cors'); 
+const cors = require('cors');
+const { Pool } = require('pg'); // Importamos la librería de PostgreSQL
+
 const app = express();
 
-// ... (El resto de tus arrays de datos y middlewares) ...
-
-// Base de datos de empleados
-const empleadosDB = [
-    { dni: "12345678", nombre: "Ana García", existe: true }, 
-    { dni: "87654321", nombre: "Luis Pérez", existe: true },
-];
-// Base de datos de registros (solo se guarda en memoria mientras Vercel está activo)
-const asistenciaDB = []; 
+// ----------------------------------------------------
+// 🔗 CONEXIÓN A LA BASE DE DATOS SUPABASE (POSTGRES)
+// ----------------------------------------------------
+// Pool automáticamente leerá la variable de entorno POSTGRES_URL
+// configurada en Vercel para establecer la conexión.
+const pool = new Pool();
 
 // Middleware
-app.use(cors()); 
-app.use(express.json()); 
+app.use(cors());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ⭐️ Rutas (endpoints) ⭐️
+// ----------------------------------------------------
+// ⭐️ RUTAS (ENDPOINTS)
+// ----------------------------------------------------
 
-// RUTA GET simple
+// RUTA GET simple (Verificación de vida del servidor)
 app.get('/', (req, res) => {
-    res.send("Backend de Asistencia funcionando en Vercel.");
+    res.send("Backend de Asistencia funcionando y conectado a la BD.");
 });
 
-// RUTA POST: Validar DNI y Obtener Datos
-app.post('/asistencia/validar', (req, res) => {
+// 1. RUTA POST: Validar DNI y Obtener Datos del Hermano (Llama a validar_hermano)
+// Endpoint: /asistencia/validar
+app.post('/asistencia/validar', async (req, res) => {
     const { dni } = req.body;
-
+    
     if (!dni || dni.length !== 8) {
-        return res.status(400).json({ success: false, message: "DNI no válido." });
+        return res.status(400).json({ success: false, message: "DNI no válido (Debe tener 8 caracteres)." });
     }
 
-    const empleado = empleadosDB.find(emp => emp.dni === dni);
+    try {
+        // Llamar a la Función SQL: validar_hermano
+        const result = await pool.query('SELECT * FROM validar_hermano($1)', [dni]);
 
-    if (empleado) {
-        return res.status(200).json({ 
-            success: true, 
-            message: "DNI verificado",
-            data: { nombre: empleado.nombre, dni: empleado.dni }
-        });
-    } else {
-        return res.status(404).json({ success: false, message: "DNI no registrado." });
+        if (result.rows.length > 0) {
+            const hermano = result.rows[0];
+            return res.status(200).json({ 
+                success: true, 
+                message: "DNI verificado",
+                data: { 
+                    nombre: hermano.nombre_hermano, 
+                    dni: hermano.dni_hermano, 
+                    grupo: hermano.nombre_grupo // Nombre de la Cuadrilla/Grupo
+                } 
+            });
+        } else {
+            // La función devuelve una tabla vacía si no existe el DNI
+            return res.status(404).json({ success: false, message: "DNI de Hermano no registrado." });
+        }
+    } catch (error) {
+        console.error("Error al validar DNI:", error);
+        return res.status(500).json({ success: false, message: "Error interno del servidor de Base de Datos." });
     }
 });
 
-// RUTA POST: Registrar Asistencia
-app.post('/asistencia/registrar', (req, res) => {
+// 2. RUTA POST: Registrar Asistencia (Llama a registrar_asistencia_entrada)
+// Endpoint: /asistencia/registrar
+app.post('/asistencia/registrar', async (req, res) => {
     const { dni } = req.body;
-
-    // ... (la misma lógica de validación y registro que en el server.js original) ...
-    const empleado = empleadosDB.find(emp => emp.dni === dni);
     
-    if (!empleado) {
-        return res.status(404).json({ success: false, message: "Registro fallido: Empleado no existe." });
+    try {
+        // Llamar a la Función SQL: registrar_asistencia_entrada
+        const queryText = 'SELECT * FROM registrar_asistencia_entrada($1)';
+        const result = await pool.query(queryText, [dni]);
+
+        const nuevoRegistro = result.rows[0];
+
+        return res.status(201).json({ 
+            success: true, 
+            message: `Asistencia registrada para ${nuevoRegistro.hermano_nombre}.`,
+            registro: {
+                id: nuevoRegistro.registro_id,
+                dni: dni,
+                nombre: nuevoRegistro.hermano_nombre,
+                fecha: nuevoRegistro.fecha_registro,
+                tipo: nuevoRegistro.tipo_registro
+            }
+        });
+    } catch (error) {
+        // Capturar la excepción lanzada por el Stored Procedure (ej. "Hermano no existe.")
+        const errorMessage = error.message.includes('no existe') ? error.message : "Error al registrar asistencia en BD.";
+        console.error("Error SQL:", error);
+        
+        // Devolver 404 si el error es de "no existe"
+        if (errorMessage.includes('no existe')) {
+             return res.status(404).json({ success: false, message: errorMessage });
+        }
+        
+        return res.status(500).json({ success: false, message: errorMessage });
     }
-
-    const nuevoRegistro = {
-        dni: empleado.dni,
-        nombre: empleado.nombre,
-        fecha: new Date().toISOString(),
-        tipo: 'ENTRADA'
-    };
-
-    asistenciaDB.push(nuevoRegistro);
-    
-    return res.status(201).json({ 
-        success: true, 
-        message: `Asistencia registrada para ${empleado.nombre}.`,
-        registro: nuevoRegistro
-    });
 });
 
 
