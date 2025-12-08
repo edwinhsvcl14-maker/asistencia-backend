@@ -78,44 +78,7 @@ app.post('/asistencia/validar', async (req, res) => {
 });
 
 
-// 2. RUTA POST: Registrar Asistencia (Llama a registrar_asistencia_entrada)
-// Endpoint: /asistencia/registrar
-app.post('/asistencia/registrar', async (req, res) => {
-    const { dni } = req.body;
-    
-    try {
-        // Llamar a la Función SQL (nombres en minúsculas)
-        const queryText = 'SELECT * FROM registrar_asistencia_entrada($1)';
-        const result = await pool.query(queryText, [dni]);
 
-        const nuevoRegistro = result.rows[0];
-
-        return res.status(201).json({ 
-            success: true, 
-            message: `Asistencia registrada para ${nuevoRegistro.hermano_nombre}.`,
-            registro: {
-                id: nuevoRegistro.registro_id,
-                dni: dni,
-                nombre: nuevoRegistro.hermano_nombre,
-                fecha: nuevoRegistro.fecha_registro,
-                tipo: nuevoRegistro.tipo_registro
-            }
-        });
-    } catch (error) {
-        // Captura la excepción lanzada por el Stored Procedure (ej. "Hermano no existe.")
-        console.error("Error al registrar asistencia:", error.message);
-        
-        // Si el error es una excepción de la BD (RAISE EXCEPTION)
-        const errorMessage = error.message.includes('no existe') ? error.message : "Error fatal al registrar asistencia.";
-        
-        // Devolver 404 si el error es de "no existe" o 500 para fallos SQL
-        if (errorMessage.includes('no existe')) {
-             return res.status(404).json({ success: false, message: errorMessage });
-        }
-        
-        return res.status(500).json({ success: false, message: errorMessage, details: error.message });
-    }
-});
 
 
 // ⭐️ EXPORTACIÓN CLAVE PARA VERCEL ⭐️
