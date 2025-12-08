@@ -6,9 +6,9 @@
   "scripts": {
     "start": "node api/index.js"
   },
-  "dependencies": {
+  "dependencies": { 
     "express": "^4.19.2",
     "cors": "^2.8.5",
-    "pg": "^8.11.3"  
+    "pg": "^8.11.3"
   }
 }
