@@ -11,7 +11,7 @@ const app = express();
 // ----------------------------------------------------
 // Pool automáticamente leerá la variable de entorno POSTGRES_URL
 // configurada en Vercel para establecer la conexión.
-const pool = new Pool();
+
 
 // Middleware
 app.use(cors());
