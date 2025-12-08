@@ -1,4 +1,5 @@
 const express = require('express');
+const { Pool } = require('pg'); // <-- 1. ¡Aquí se define 'Pool'!
 const cors = require('cors');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
